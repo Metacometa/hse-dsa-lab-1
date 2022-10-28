@@ -4,159 +4,221 @@
 #include <math.h>
 #include <cmath>
 #include <chrono>
+#include <iomanip>
+#include <fstream>
+#include <sstream>
+#include <algorithm>
+#include <string>
 
 using namespace std;
 
+typedef  chrono::high_resolution_clock Clock;
+
 class Solution {
 private:
-    size_t n, m;
-    bool binary_search(size_t columns, long long target)
-    {
-        int low = 0;
-        int high = n - 1;
-        while (low <= high)
-        {
-            int mid = low + (high - low) / 2;
-            // << matrix[mid][columns];
-            if (matrix[mid][columns] > target)
-                high = mid - 1;
-            else if (matrix[mid][columns] < target)
-                low = mid + 1;
-            else
-            {
-                //cout << endl;
-                return 1;
-            }
-
-            //cout << "->";
-        }
-        //cout << endl;
-        return 0;
-    }
+    size_t M, N;
 public:
     long long** matrix;
     //n always bigger than m
 
-    Solution(size_t n_, size_t m_) {
-        n = n_;
-        m = m_;
-        if (n_ < m_)
-        {
-            m = n_;
-            n = m_;
-        }
-        matrix = generateMatrix(n, m);
+    Solution() {
+        M = 0;
+        N = 0;
+        matrix = nullptr;
     }
     ~Solution() {
-        for (size_t i = 0; i < n; i++)
+        for (size_t i = 0; i < M; i++)
         {
             delete[] matrix[i];
         }
-
         delete[] matrix;
     }
 
-    bool linear_solution(long long target)
-    {
-        cout << "Linear solution:" << endl;
-        int i = 0;
-        int j = m - 1;
+    bool exponential_finder(long long target) {
+            long long i = 0;
+            long long j = N - 1;
+            bool found = 0;
+            while ((i != M-1 && matrix[i][j] < target) && j != -1)
+            {
+                //std::cout << "exp: " << matrix[i][j] << "->";
+                if (matrix[i][j] == target)
+                    return 1;
+                long long border = 1;
+                long long low, high;
+                while (i+border < M && matrix[i+border][j] < target) {
+                    //std::cout << matrix[i+border][j] << "->";
+                    border *= 2;
+                }
+
+                low = (border) / 2+i;
+                if (i + border > M - 1)
+                    border = M - 1;
+                else
+                    border = i + border;
+                high = border;
+                //std::cout << std::endl;
+                //std::cout << "binary: ";
+                while (low <= high) {
+                    long long mid = (high - low) / 2 + low; 
+                    //std::cout << matrix[mid][j] << "->";
+                    if (matrix[mid][j] == target)
+                        return 1;
+                    else if (target < matrix[mid][j])
+                        high = mid - 1;
+                    else
+                        low = mid + 1;
+
+                }
+
+                i = high;
+                if (high < 0)
+                    i= low;
+                if (i >= M)
+                    return 0;
+                //std::cout << " [" << matrix[i][j-1] << "]" << std::endl;
+                j--;
+
+            }
+            //std::cout << std::endl;
+            return found;
+    }
+
+    bool ladder_finder(long long target) {
+        size_t i = 0;
+        size_t j = N - 1;
         bool found = 0;
-        while (i != n && j != -1)
+        while (i != M && j != -1)
         {
-            //cout << matrix[i][j];
+            //std::cout << matrix[i][j] << "->";
             if (matrix[i][j] == target)
             {
-                //cout << endl << target << " exists" << endl;
-                //return 1;
                 found = 1;
                 break;
             }
             else if (matrix[i][j] > target)
                 j--;
             else i++;
-            //cout << "->";
+
         }
-        if (i == n || j == -1)
-            //cout << target << " does not exists" << endl;
-        if (!found)
-            return 0;
-        else
-            return 1;
+        return found;
     }
 
-    bool binary_solution(long long target)
-    {
+    bool binary_finder(long long target) {
         bool found = 0;
-        cout << "Binary solution:" << endl;
-        for (size_t columns = 0; columns < m; ++columns)
-        {
-            if (binary_search(columns, target) == 1)
-            {
-                //cout << target << " exists" << endl;
-                found++;
-                //return 1;
-                //break;
+        if (M > N) {
+            for (size_t columns = 0; columns < N && found != 1; ++columns) {  
+                long long low = 0;
+                long long high = M - 1;
+                while (low <= high) {
+                   long long mid = (high-low) / 2 + low;
+                    //std::cout << matrix[mid][columns];
+                    if (matrix[mid][columns] == target)
+                    {
+                        found = 1;
+                        break;
+                    }
+                    else if (matrix[mid][columns] < target)
+                        low = mid + 1;
+                    else
+                        high = mid - 1;
+                }
             }
-
         }
-        if (!found)
-        {
-            //cout << target << " does not exists" << endl;
+        else {
+            for (size_t rows = 0; rows < M && found != 1; ++rows) {
+                long long low = 0;
+                long long high = N - 1;
+                while (low <= high) {
+                    long long mid = (high-low) / 2 + low;
+                    if (matrix[rows][mid] == target)
+                    {
+                        found = 1;
+                        break;
+                    }
+                    else if (matrix[rows][mid] < target)
+                        low = mid + 1;
+                    else
+                        high = mid - 1;
+                }
+            }
         }
-        else
-            return 1;
-
-        return 0;
+        return found;
     }
 
 
-    void print()
-    {
-        for (size_t i = 0; i < n; i++)
+    void print() {
+        for (size_t i = 0; i < M; i++)
         {
-            for (int j = 0; j < m; j++)
-                cout << matrix[i][j] << " ";
+            for (size_t j = 0; j < N; j++)
+                cout << setw(3) << matrix[i][j] << " ";
             cout << endl;
         }
     }
-    long long** generateMatrix(size_t rows, size_t columns) {
-        long long** arr = new long long* [rows];
-        for (size_t i = 0; i < rows; ++i)
-        {
-            arr[i] = new long long[columns];
-            for (size_t j = 0; j < columns; ++j)
-            {
-                long long resultValue = 0;
-                // !i
-                if (i && j) resultValue = max(arr[i - 1][j], arr[i][j - 1]);
-                else if (i) resultValue = arr[i - 1][j];
-                else if (j) resultValue = arr[i][j - 1];
-                arr[i][j] = resultValue + rand() % 2 + 1;
 
+    void linear_data_generation(size_t m, size_t n) {
+        for (size_t i = 0; i < M; i++)
+        {
+            delete[] matrix[i];
+        }
+        delete[] matrix;
+
+        this->M = m;
+        this->N = n;
+        matrix = new long long* [M];
+        for (size_t i = 0; i < M; ++i)
+        {
+            matrix[i] = new long long[N];
+            for (size_t j = 0; j < N; ++j)
+            { 
+                //std::cout << n / m * i + j << std::endl;
+                matrix[i][j] = (N / M * i + j)*2;
             }
         }
-        return arr;
+        //matrix = arr;
     }
-
+    void exponential_data_generation(size_t m, size_t n) {
+        for (size_t i = 0; i < this->M; i++)
+        {
+            delete[] matrix[i];
+        }
+        delete[] matrix;
+        this->M = m;
+        this->N = n;
+        matrix = new long long* [M];
+        for (size_t i = 0; i < M; ++i)
+        {
+            matrix[i] = new long long[N];
+            for (size_t j = 0; j < N; ++j)
+            {
+                //std::cout << n / m * i + j << std::endl;
+                matrix[i][j] = (N/M * i * j) * 2;
+            }
+        }
+        //matrix = arr;
+    }
 
 
 };
 
 void measuring(size_t iterations)
 {
-    size_t n = 10000;
+    size_t n = 10;
     size_t m = 10;
     long long target;
     for (size_t i = 0; i < 1; ++i)
     {
-        Solution solution(n, m);
+        //Solution solution(n, m);
 
+
+
+
+
+        /*
         target = rand() % solution.matrix[n - 1][m - 1];
 
-        auto start = chrono::high_resolution_clock::now();
+        auto start = Clock::now();
         solution.linear_solution(target);
-        auto end = chrono::high_resolution_clock::now();
+        auto end = Clock::now();
         chrono::duration<float> duration = end - start;
         cout << fixed << duration.count() << endl;
 
@@ -165,18 +227,106 @@ void measuring(size_t iterations)
 
         auto n_end = chrono::high_resolution_clock::now();
         duration = n_end - n_start;
-        cout << fixed << duration.count() << endl;
+        cout << fixed << duration.count() << endl;*/
     }
 }
 int main()
 {
     srand(time(0));
-    measuring(100);
 
-    //написать 2 решения
-    //O(nlong(m)) (через бинарный поиск)
-    //O(n+m) (с левого верхнего угла >tagret вниз если < target влево)
-    //замерить время через chrono, во время замера отмерить время до нахождения target и время полного прохода алгоса по матрице
+    Solution solution;
 
+    size_t M = 2;
+    size_t N = pow(2, 13);
+    long long target_one = 2 * N + 1;
+    long long target_two = 16 * N + 1;
+
+    for (int i = 0; M != pow(2, 14); i++) {
+        solution.linear_data_generation(M, N);
+        solution.print();
+        std::cout << solution.exponential_finder(target_one) << std::endl;
+    }
+
+    /*
+    std::stringstream ss;
+    ofstream f1("first_graph.txt");
+    ofstream f2("second_graph.txt");
+    std::cout << "Ladder VS Binary VS Exponential algorithms" << std::endl;
+    for (int j = 0; M != pow(2,14); j++)
+    {
+        std::cout << "Array size: " << M << " x " << N << std::endl;
+        solution.linear_data_generation(M, N);
+        M *= 2;
+        double duration_ladder = 0;
+        double duration_binary = 0;
+        double duration_exponential = 0;
+        for (int i = 0; i < 100; i++)
+        {
+            auto start_ladder = Clock::now();
+            solution.ladder_finder(target_one);
+            auto end_ladder = Clock::now();
+
+            auto start_binary = Clock::now();
+            solution.binary_finder(target_one);
+            auto end_binary = Clock::now();
+
+            auto start_exponential = Clock::now();
+            solution.exponential_finder(target_one);
+            auto end_exponential = Clock::now();
+
+            duration_ladder += chrono::duration_cast<chrono::microseconds>(end_ladder - start_ladder).count();
+            duration_binary += chrono::duration_cast<chrono::microseconds>(end_binary - start_binary).count();
+            duration_exponential += chrono::duration_cast<chrono::microseconds>(end_exponential - start_exponential).count();
+        }
+        duration_ladder /= 100;
+        duration_binary /= 100;
+        duration_exponential /= 100;
+        ss << duration_ladder << " " << duration_binary << " " << duration_exponential << std::endl;
+        std::cout << "Speed: " << duration_ladder << "mks " << duration_binary << "mks " << duration_exponential << "mks" << std::endl;
+    }
+    std::cout << std::endl;
+    string temp;
+    temp = ss.str();
+    std::replace(temp.begin(), temp.end(), '.', ',');
+    f1 << temp;
+    ss.str("");
+
+    M = 2;
+    N = pow(2, 13);
+    Solution first_data;
+    Solution second_data;
+    std::cout << "Linear VS Exponential data generations AND exponential algorihm" << std::endl;
+    for (int j = 0; M != pow(2, 14); j++)
+    {
+        std::cout << "Array size: " << M << " x " << N << std::endl;
+        first_data.linear_data_generation(M, N);
+        second_data.exponential_data_generation(M, N);
+        M *= 2;
+        double duration_first_data = 0;
+        double duration_second_data = 0;
+        for (int i = 0; i < 100; i++)
+        {
+            auto start_first_data = Clock::now();
+            first_data.exponential_finder(target_one);
+            auto end_first_data = Clock::now();
+
+            auto start_second_data = Clock::now();
+            second_data.exponential_finder(target_two);
+            auto end_second_data = Clock::now();
+
+            duration_first_data += chrono::duration_cast<chrono::microseconds>(end_first_data - start_first_data).count();
+            duration_second_data += chrono::duration_cast<chrono::microseconds>(end_second_data - start_second_data).count();
+        }
+        duration_first_data /= 100;
+        duration_second_data /= 100;
+        ss << duration_first_data << " " << duration_second_data << std::endl;
+        std::cout << "Speed: " << duration_first_data << "mks " << duration_second_data << "mks" << std::endl;
+    }
+    temp;
+    temp = ss.str();
+    std::replace(temp.begin(), temp.end(), '.', ',');
+    f2 << temp;
+    ss.clear();
+    */
 }
 
