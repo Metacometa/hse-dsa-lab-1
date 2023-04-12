@@ -19,7 +19,6 @@ private:
     size_t M, N;
 public:
     long long** matrix;
-    //n always bigger than m
 
     Solution() {
         M = 0;
@@ -35,30 +34,22 @@ public:
     }
 
     bool exponential_finder(long long target) {
-            //std::cout << "Target: " << target << std::endl;
             long long i = 0;
             long long j = N-1;
             while (i != M && j != -1)
             {
-                //std::cout << "exp:  >>{" << matrix[i][j] << "}->";
                 if (matrix[i][j] == target)
                     return 1;
                 long long border = 1;
                 long long low, high;
                 while (j-border >= 0 && matrix[i][j-border] > target) {
-                    //std::cout << matrix[i][j-border] << "->";
                     border *= 2;
                 }
 
-                //low = (border) / 2 + j;
-                //high = min(j+border,static_cast<long long>(N-1));
                 low = max(j - border, static_cast<long long>(0));
-                high = j - border / 2;
-                //std::cout << std::endl;
-                //std::cout << "interval: [" << matrix[i][low] << ", " << matrix[i][high] << "]\nbinary: ";           
+                high = j - border / 2;        
                 while (low <= high) {
                     long long mid = (high - low) / 2 + low; 
-                    //std::cout << matrix[i][mid] << "->";
                     if (matrix[i][mid] == target)
                         return 1;
                     else if (target < matrix[i][mid])
@@ -72,11 +63,8 @@ public:
                     j = low;
                 else
                     j = high;
-                //std::cout << " {" << matrix[i][j] << "}"<< std::endl;
                 i++;
-                //std::cout << ">>" << matrix[i][j] << std::endl;
             }
-            //std::cout << std::endl;
             return 0;
     }
 
@@ -86,7 +74,6 @@ public:
         bool found = 0;
         while (i != M && j != -1)
         {
-            //std::cout << matrix[i][j] << "->";
             if (matrix[i][j] == target)
             {
                 found = 1;
@@ -108,7 +95,6 @@ public:
                 long long high = M - 1;
                 while (low <= high) {
                    long long mid = (high-low) / 2 + low;
-                    //std::cout << matrix[mid][columns];
                     if (matrix[mid][columns] == target)
                     {
                         found = 1;
@@ -142,16 +128,6 @@ public:
         return found;
     }
 
-
-    void print() {
-        for (size_t i = 0; i < M; i++)
-        {
-            for (size_t j = 0; j < N; j++)
-                cout << setw(3) << matrix[i][j] << " ";
-            cout << endl;
-        }
-    }
-
     void linear_data_generation(size_t m, size_t n) {
         for (size_t i = 0; i < M; i++)
         {
@@ -167,11 +143,9 @@ public:
             matrix[i] = new long long[N];
             for (size_t j = 0; j < N; ++j)
             { 
-                //std::cout << n / m * i + j << std::endl;
                 matrix[i][j] = (N / M * i + j)*2;
             }
         }
-        //matrix = arr;
     }
     void exponential_data_generation(size_t m, size_t n) {
         for (size_t i = 0; i < this->M; i++)
@@ -187,46 +161,14 @@ public:
             matrix[i] = new long long[N];
             for (size_t j = 0; j < N; ++j)
             {
-                //std::cout << n / m * i + j << std::endl;
                 matrix[i][j] = (N/M * i * j) * 2;
             }
         }
-        //matrix = arr;
     }
 
 
 };
 
-void measuring(size_t iterations)
-{
-    size_t n = 10;
-    size_t m = 10;
-    long long target;
-    for (size_t i = 0; i < 1; ++i)
-    {
-        //Solution solution(n, m);
-
-
-
-
-
-        /*
-        target = rand() % solution.matrix[n - 1][m - 1];
-
-        auto start = Clock::now();
-        solution.linear_solution(target);
-        auto end = Clock::now();
-        chrono::duration<float> duration = end - start;
-        cout << fixed << duration.count() << endl;
-
-        auto n_start = chrono::high_resolution_clock::now();
-        solution.binary_solution(target);
-
-        auto n_end = chrono::high_resolution_clock::now();
-        duration = n_end - n_start;
-        cout << fixed << duration.count() << endl;*/
-    }
-}
 int main()
 {
     srand(time(0));
