@@ -35,52 +35,49 @@ public:
     }
 
     bool exponential_finder(long long target) {
+            //std::cout << "Target: " << target << std::endl;
             long long i = 0;
-            long long j = N - 1;
-            bool found = 0;
-            while ((i != M-1 && matrix[i][j] < target) && j != -1)
+            long long j = N-1;
+            while (i != M && j != -1)
             {
-                //std::cout << "exp: " << matrix[i][j] << "->";
+                //std::cout << "exp:  >>{" << matrix[i][j] << "}->";
                 if (matrix[i][j] == target)
                     return 1;
                 long long border = 1;
                 long long low, high;
-                while (i+border < M && matrix[i+border][j] < target) {
-                    //std::cout << matrix[i+border][j] << "->";
+                while (j-border >= 0 && matrix[i][j-border] > target) {
+                    //std::cout << matrix[i][j-border] << "->";
                     border *= 2;
                 }
 
-                low = (border) / 2+i;
-                if (i + border > M - 1)
-                    border = M - 1;
-                else
-                    border = i + border;
-                high = border;
+                //low = (border) / 2 + j;
+                //high = min(j+border,static_cast<long long>(N-1));
+                low = max(j - border, static_cast<long long>(0));
+                high = j - border / 2;
                 //std::cout << std::endl;
-                //std::cout << "binary: ";
+                //std::cout << "interval: [" << matrix[i][low] << ", " << matrix[i][high] << "]\nbinary: ";           
                 while (low <= high) {
                     long long mid = (high - low) / 2 + low; 
-                    //std::cout << matrix[mid][j] << "->";
-                    if (matrix[mid][j] == target)
+                    //std::cout << matrix[i][mid] << "->";
+                    if (matrix[i][mid] == target)
                         return 1;
-                    else if (target < matrix[mid][j])
+                    else if (target < matrix[i][mid])
                         high = mid - 1;
                     else
                         low = mid + 1;
-
-                }
-
-                i = high;
-                if (high < 0)
-                    i= low;
-                if (i >= M)
-                    return 0;
-                //std::cout << " [" << matrix[i][j-1] << "]" << std::endl;
-                j--;
-
+                }       
+                if (low >= 0 && high >= 0)
+                    j = min(low, high);
+                else if (low >= 0)
+                    j = low;
+                else
+                    j = high;
+                //std::cout << " {" << matrix[i][j] << "}"<< std::endl;
+                i++;
+                //std::cout << ">>" << matrix[i][j] << std::endl;
             }
             //std::cout << std::endl;
-            return found;
+            return 0;
     }
 
     bool ladder_finder(long long target) {
@@ -241,19 +238,13 @@ int main()
     long long target_one = 2 * N + 1;
     long long target_two = 16 * N + 1;
 
-    for (int i = 0; M != pow(2, 14); i++) {
-        solution.linear_data_generation(M, N);
-        solution.print();
-        std::cout << solution.exponential_finder(target_one) << std::endl;
-    }
-
-    /*
     std::stringstream ss;
     ofstream f1("first_graph.txt");
     ofstream f2("second_graph.txt");
     std::cout << "Ladder VS Binary VS Exponential algorithms" << std::endl;
     for (int j = 0; M != pow(2,14); j++)
     {
+
         std::cout << "Array size: " << M << " x " << N << std::endl;
         solution.linear_data_generation(M, N);
         M *= 2;
@@ -327,6 +318,8 @@ int main()
     std::replace(temp.begin(), temp.end(), '.', ',');
     f2 << temp;
     ss.clear();
-    */
+
+    f1.close();
+    f2.close();
 }
 
